@@ -594,11 +594,13 @@ if __name__ == '__main__':
         for sp in ['train', 'valid', 'test']:
             ok_cnt = 0
             all_cnt = 0
+            write_cnt_src = 0
+            write_cnt_tgt = 0
             file_list_split = []
-            if sp == 'train':  # 98%
-                file_list_split = file_list[: 98 * total_file_cnt // 100]
-            if sp == 'valid':  # 1%
-                file_list_split = file_list[98 * total_file_cnt //
+            if sp == 'train':  # 90%
+                file_list_split = file_list[: 90 * total_file_cnt // 100]
+            if sp == 'valid':  # 9%
+                file_list_split = file_list[90 * total_file_cnt //
                                             100: 99 * total_file_cnt // 100]
             if sp == 'test':  # 1%
                 file_list_split = file_list[99 * total_file_cnt // 100:]
@@ -606,7 +608,8 @@ if __name__ == '__main__':
             tgt_file = f'{prefix}/{sp}.notes'
             result = [p.apply_async(process_with_catch, args=[midi_fn])
                       for midi_fn in file_list_split]
-
+            
+            print(len(result))
             with open(src_file, 'w') as s, open(tgt_file, 'w') as t:
                 for r in tqdm(result):
                     tmp = r.get()
@@ -629,8 +632,11 @@ if __name__ == '__main__':
                             ok_cnt += 1
                             for output_str in src_str_list:
                                 s.write(f'{output_str}\n')
+                                write_cnt_src += 1
                             for output_str in tgt_str_list:
                                 t.write(f'{output_str}\n')
+                                write_cnt_tgt += 1
             print('{}: {}/{} ({:.2f}%) midi files successfully processed'.format(sp, ok_cnt, all_cnt,
                                                                                  ok_cnt / all_cnt * 100 if all_cnt
                                                                                  else 0))
+            print(f"Source write line count: {write_cnt_src}, target write line count: {write_cnt_tgt}")
